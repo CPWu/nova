@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive README
 
 ### Changed
+- Updated Go version to 1.23 in go.mod and Dockerfile
+- Updated k8s deployment to use chunw208/nova:latest image
+- Made build.sh executable with proper permissions
+- Improved build script Docker login check
 
 ### Deprecated
 

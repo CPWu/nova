@@ -122,5 +122,6 @@ RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o app
 
 ## Dependencies
 
-Go version: 1.25.6 (specified in go.mod)
+Go version: 1.23 (specified in go.mod)
 Module path: github.com/cpwu/nova
+Docker Hub: chunw208/nova

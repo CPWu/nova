@@ -12,10 +12,10 @@ A lightweight Go web service that serves a simple HTTP endpoint. Designed for co
 
 ## Prerequisites
 
-- Go 1.25.6 or later
+- Go 1.23 or later
 - Docker (with buildx for multi-arch builds)
 - kubectl (for Kubernetes deployment)
-- A Kubernetes cluster (tested on k3s)
+- A Kubernetes cluster (tested on k3s on Raspberry Pi)
 - Docker Hub account (for registry push)
 
 ## Quick Start
@@ -57,12 +57,7 @@ docker login
 ## Kubernetes Deployment
 
 ### Prerequisites
-1. Update `k8s/deployment.yaml` with your Docker Hub username:
-   ```bash
-   sed -i '' 's/YOUR_DOCKERHUB_USERNAME/your-username/g' k8s/deployment.yaml
-   ```
-
-2. Build and push the image:
+1. Build and push the image (deployment already configured for chunw208/nova):
    ```bash
    export DOCKER_USERNAME=your-username
    ./build.sh --push

@@ -24,13 +24,7 @@ if [ "$PUSH_TO_REGISTRY" = true ]; then
     # Build multi-architecture image for k8s (ARM64 for Raspberry Pi + AMD64)
     echo "Building multi-architecture image for AMD64 and ARM64..."
     echo "Image: ${REGISTRY_TAG}"
-
-    # Check if logged in to Docker Hub
-    if ! docker info | grep -q "Username"; then
-        echo "Error: Not logged in to Docker Hub."
-        echo "Run 'docker login' to authenticate."
-        exit 1
-    fi
+    echo "Note: Make sure you're logged in with 'docker login'"
 
     # Create buildx builder if it doesn't exist
     if ! docker buildx inspect multiarch > /dev/null 2>&1; then

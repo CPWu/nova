@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nova
-        image: YOUR_DOCKERHUB_USERNAME/nova:latest
+        image: chunw208/nova:latest
         ports:
         - containerPort: 8080
           name: http
