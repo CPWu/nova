@@ -1,34 +1,71 @@
 #!/bin/bash
 
-# Configuration
-REGISTRY_USERNAME="${DOCKER_USERNAME:-YOUR_DOCKERHUB_USERNAME}"
+set -euo pipefail
+
+# ----------------------------------------
+#  CONFIGURATION
+# ----------------------------------------
+
+# Auto-detect Docker Hub username if not provided
+DETECTED_USERNAME="$(docker info --format '{{.Username}}' 2>/dev/null || true)"
+REGISTRY_USERNAME="${DOCKER_USERNAME:-$DETECTED_USERNAME}"
+
 IMAGE_NAME="nova"
 VERSION="${VERSION:-latest}"
-LOCAL_TAG="nova"
+LOCAL_TAG="${IMAGE_NAME}"
 REGISTRY_TAG="${REGISTRY_USERNAME}/${IMAGE_NAME}:${VERSION}"
 
-# Parse arguments
-PUSH_TO_REGISTRY=false
-if [[ "$1" == "--push" ]]; then
-    PUSH_TO_REGISTRY=true
-fi
+# ----------------------------------------
+#  VALIDATION
+# ----------------------------------------
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo "Error: Docker is not running."
-    echo "Please start Docker and try again."
+# Ensure Docker is running
+if ! docker info >/dev/null 2>&1; then
+    echo "❌ Error: Docker is not running."
+    echo "Start Docker Desktop and try again."
     exit 1
 fi
 
-if [ "$PUSH_TO_REGISTRY" = true ]; then
-    # Build multi-architecture image for k8s (ARM64 for Raspberry Pi + AMD64)
-    echo "Building multi-architecture image for AMD64 and ARM64..."
-    echo "Image: ${REGISTRY_TAG}"
-    echo "Note: Make sure you're logged in with 'docker login'"
+# Ensure username is available
+if [[ -z "$REGISTRY_USERNAME" ]]; then
+    echo "❌ Error: No Docker Hub username detected."
+    echo "Run: docker login"
+    echo "Or export DOCKER_USERNAME=<yourname>"
+    exit 1
+fi
 
-    # Create buildx builder if it doesn't exist
-    if ! docker buildx inspect multiarch > /dev/null 2>&1; then
-        echo "Creating buildx builder..."
+# Ensure username is lowercase (Docker requirement)
+if [[ "$REGISTRY_USERNAME" =~ [A-Z] ]]; then
+    echo "❌ Error: Docker Hub username must be lowercase."
+    echo "Detected: $REGISTRY_USERNAME"
+    exit 1
+fi
+
+# ----------------------------------------
+#  ARGUMENT PARSING
+# ----------------------------------------
+
+PUSH_TO_REGISTRY=false
+if [[ "${1:-}" == "--push" ]]; then
+    PUSH_TO_REGISTRY=true
+fi
+
+# ----------------------------------------
+#  BUILD LOGIC
+# ----------------------------------------
+
+if [[ "$PUSH_TO_REGISTRY" == true ]]; then
+    echo "----------------------------------------"
+    echo "🚀 Building multi-architecture image"
+    echo "   Platforms: linux/amd64 + linux/arm64"
+    echo "   Image:     ${REGISTRY_TAG}"
+    echo "----------------------------------------"
+    echo "Note: Make sure you're logged in with 'docker login'"
+    echo ""
+
+    # Create buildx builder if needed
+    if ! docker buildx inspect multiarch >/dev/null 2>&1; then
+        echo "🔧 Creating buildx builder..."
         docker buildx create --name multiarch --use
     else
         docker buildx use multiarch
@@ -40,30 +77,31 @@ if [ "$PUSH_TO_REGISTRY" = true ]; then
         --push \
         .
 
-    if [ $? -eq 0 ]; then
-        echo ""
-        echo "✓ Build and push successful!"
-        echo "Image: ${REGISTRY_TAG}"
-        echo ""
-        echo "Update k8s/deployment.yaml with: image: ${REGISTRY_TAG}"
-        echo "Then deploy: kubectl apply -k k8s/"
-    else
-        echo "Build failed!"
-        exit 1
-    fi
+    echo ""
+    echo "✅ Build and push successful!"
+    echo "   Image: ${REGISTRY_TAG}"
+    echo ""
+    echo "Update k8s/deployment.yaml with:"
+    echo "   image: ${REGISTRY_TAG}"
+    echo ""
+    echo "Deploy with:"
+    echo "   kubectl apply -k k8s/"
+    echo ""
+
 else
-    # Local build only
-    echo "Building Docker image locally..."
+    echo "----------------------------------------"
+    echo "🛠  Building local Docker image"
+    echo "   Tag: ${LOCAL_TAG}"
+    echo "----------------------------------------"
+
     docker build -t "${LOCAL_TAG}" .
 
-    if [ $? -eq 0 ]; then
-        echo ""
-        echo "✓ Build successful!"
-        echo "To run: docker run -p 8080:8080 ${LOCAL_TAG}"
-        echo ""
-        echo "To build and push to registry: ./build.sh --push"
-    else
-        echo "Build failed!"
-        exit 1
-    fi
+    echo ""
+    echo "✅ Local build successful!"
+    echo "Run locally with:"
+    echo "   docker run -p 8080:8080 ${LOCAL_TAG}"
+    echo ""
+    echo "To build and push to Docker Hub:"
+    echo "   ./build.sh --push"
+    echo ""
 fi

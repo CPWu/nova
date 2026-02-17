@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nova is a simple Go web service that serves a "Hello, World!" HTTP endpoint on port 8080. The project is containerized using Docker with multi-stage builds for optimized image size.
+Nova is a Go web service with HTML template rendering using a template caching system and base layout inheritance. It serves multiple routes (/, /about) with Bootstrap-styled pages. The application follows the Repository pattern for clean architecture and uses application configuration management. The project is containerized using Docker with multi-stage builds for optimized image size.
 
 ## Build and Run Commands
 
@@ -12,13 +12,13 @@ Nova is a simple Go web service that serves a "Hello, World!" HTTP endpoint on p
 
 Build and run locally:
 ```bash
-go build -o main .
-./main
+go build -o nova cmd/web/main.go
+./nova
 ```
 
 Run without building:
 ```bash
-go run main.go
+go run cmd/web/main.go
 ```
 
 ### Docker
@@ -44,66 +44,75 @@ Run the container:
 docker run -p 8080:8080 nova
 ```
 
-### Kubernetes (k3s on Raspberry Pi)
-
-Deploy to Kubernetes cluster:
-```bash
-# 1. Build and push multi-arch image to registry
-export DOCKER_USERNAME=your-dockerhub-username
-./build.sh --push
-
-# 2. Update k8s/deployment.yaml with your image name
-
-# 3. Deploy to cluster
-kubectl apply -k k8s/
-
-# 4. Verify deployment
-kubectl get pods -l app=nova
-kubectl get svc nova
-```
-
-Access the service (internal):
-```bash
-# Port-forward for testing
-kubectl port-forward svc/nova 8080:80
-
-# Or from within cluster
-curl http://nova.default.svc.cluster.local
-```
-
-For external access, configure your CloudFlare Tunnel to point to `http://nova.default.svc.cluster.local:80`
-
-Delete deployment:
-```bash
-kubectl delete -k k8s/
-```
-
 ### Testing the Service
 
-Once running (locally or in Docker), test the endpoint:
+Once running (locally or in Docker), test the endpoints:
 ```bash
+# Home page
 curl http://localhost:8080
+
+# About page
+curl http://localhost:8080/about
 ```
 
-Expected response: `Hello, World!`
+Or open in browser: `http://localhost:8080`
 
 ## Architecture
 
-This is a single-file Go application (`main.go`) with:
-- One HTTP handler serving "/" endpoint
-- Server running on port 8080
-- Uses only Go standard library (`net/http`)
+This follows the standard Go project layout with clean separation of concerns:
+
+**Application Structure:**
+- **cmd/web/main.go**: Application entry point with initialization, routing, and server setup
+  - Initializes AppConfig with template cache
+  - Creates Repository with app config
+  - Sets up handlers and render package
+  - Defines HTTP routes
+- **pkg/config/**: Application configuration package
+  - **config.go**: AppConfig struct holding template cache, UseCache flag, and InfoLog
+- **pkg/handlers/**: HTTP handlers package with Repository pattern
+  - **handlers.go**: Repository struct and handler methods (Home, About)
+  - Repository pattern provides handlers access to application configuration
+- **pkg/render/**: Template rendering package with caching system
+  - **render.go**: RenderTemplate function and CreateTemplateCache function
+  - Supports both cached (production) and non-cached (development) modes
+  - Parses *.page.tmpl and *.layout.tmpl files into template cache
+- **templates/**: HTML templates with Bootstrap 5 styling and layout inheritance
+  - **base.layout.tmpl**: Base layout defining HTML structure with named blocks (content, css, js)
+  - **home.page.tmpl**: Home page content that extends base layout
+  - **about.page.tmpl**: About page content that extends base layout
+
+**Routes:**
+- `/` - Home page with Bootstrap styling
+- `/about` - About page
+
+**Technical Details:**
+- Server runs on port 8080
+- Uses Go standard library (`net/http`, `html/template`)
+- Follows Go's standard project layout (cmd, pkg structure)
+- Exported packages allow for easy testing and reusability
+- Template caching system for improved performance
+- Repository pattern for clean architecture and dependency injection
+- Base layout template with block inheritance (content, css, js blocks)
+
+**Template System:**
+- **Layout Inheritance**: Page templates extend `base.layout.tmpl` using `{{template "base" .}}`
+- **Named Blocks**: Define content blocks with `{{define "content"}}...{{end}}`
+- **Caching**: Templates parsed at startup and stored in map[string]*template.Template
+- **Cache Modes**:
+  - `UseCache = false`: Parse templates on every request (development)
+  - `UseCache = true`: Use pre-parsed cached templates (production)
+
+**Repository Pattern:**
+1. AppConfig created in main with template cache
+2. Repository struct wraps AppConfig
+3. Handlers receive Repository to access app configuration
+4. Render package initialized with AppConfig reference
 
 The Dockerfile implements a multi-stage build pattern:
-1. **Build stage**: Uses `golang:1.21-alpine` to compile the Go binary
+1. **Build stage**: Uses `golang:1.23-alpine` to compile the Go binary from cmd/web/
 2. **Runtime stage**: Uses `alpine:latest` with only the compiled binary for minimal image size
 
-Kubernetes manifests in `k8s/`:
-- **deployment.yaml**: Runs 2 replicas with health checks, optimized resource limits for Raspberry Pi
-- **service.yaml**: ClusterIP service exposing port 80 (maps to container port 8080)
-- **kustomization.yaml**: Kustomize configuration for easy deployment management
-
-The build script supports multi-architecture builds (AMD64 + ARM64) for compatibility with Raspberry Pi clusters.
+The build script supports multi-architecture builds (AMD64 + ARM64) for broad compatibility.
 
 ## Docker Best Practices
 

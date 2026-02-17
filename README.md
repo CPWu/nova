@@ -1,22 +1,24 @@
 # Nova
 
-A lightweight Go web service that serves a simple HTTP endpoint. Designed for containerized deployment on Kubernetes clusters, with optimized builds for ARM64 (Raspberry Pi) and AMD64 architectures.
+A lightweight Go web service with HTML template rendering. Features multiple routes and Bootstrap-styled pages. Designed for containerized deployment on Kubernetes clusters, with optimized builds for ARM64 (Raspberry Pi) and AMD64 architectures.
 
 ## Features
 
-- Minimal HTTP server using Go standard library
+- HTTP server with multiple routes (/, /about)
+- HTML template rendering with Bootstrap 5 styling
+- Template caching system for improved performance
+- Base layout template with block inheritance
+- Repository pattern for clean architecture
+- Application configuration management
+- Clean separation of concerns (config, handlers, rendering, templates)
 - Multi-stage Docker builds for optimized image size
 - Multi-architecture support (ARM64 + AMD64)
-- Kubernetes-ready with health checks and resource limits
-- Optimized for k3s on Raspberry Pi clusters
 
 ## Prerequisites
 
 - Go 1.23 or later
 - Docker (with buildx for multi-arch builds)
-- kubectl (for Kubernetes deployment)
-- A Kubernetes cluster (tested on k3s on Raspberry Pi)
-- Docker Hub account (for registry push)
+- Docker Hub account (optional, for registry push)
 
 ## Quick Start
 
@@ -24,20 +26,25 @@ A lightweight Go web service that serves a simple HTTP endpoint. Designed for co
 
 Run directly with Go:
 ```bash
-go run main.go
+go run cmd/web/main.go
 ```
 
 Or build and run:
 ```bash
-go build -o main .
-./main
+go build -o nova cmd/web/main.go
+./nova
 ```
 
-Test the endpoint:
+Test the endpoints:
 ```bash
+# Home page
 curl http://localhost:8080
-# Expected: Hello, World!
+
+# About page
+curl http://localhost:8080/about
 ```
+
+Or open in browser: `http://localhost:8080`
 
 ### Docker
 
@@ -54,75 +61,51 @@ docker login
 ./build.sh --push
 ```
 
-## Kubernetes Deployment
-
-### Prerequisites
-1. Build and push the image (deployment already configured for chunw208/nova):
-   ```bash
-   export DOCKER_USERNAME=your-username
-   ./build.sh --push
-   ```
-
-### Deploy
-```bash
-kubectl apply -k k8s/
-```
-
-### Verify
-```bash
-kubectl get pods -l app=nova
-kubectl get svc nova
-```
-
-### Test
-```bash
-# Port-forward for local testing
-kubectl port-forward svc/nova 8080:80
-curl http://localhost:8080
-
-# Or test from within cluster
-kubectl run -it --rm debug --image=alpine --restart=Never -- wget -qO- http://nova
-```
-
-### Cleanup
-```bash
-kubectl delete -k k8s/
-```
-
 ## Project Structure
 
 ```
 nova/
-├── main.go              # Go web server
-├── go.mod               # Go module definition
-├── Dockerfile           # Multi-stage Docker build
-├── build.sh             # Build script with multi-arch support
-├── DOCKER.md            # Docker best practices guide
-├── CLAUDE.md            # AI assistant guidance
-├── k8s/                 # Kubernetes manifests
-│   ├── deployment.yaml  # Deployment configuration
-│   ├── service.yaml     # Service definition
-│   ├── kustomization.yaml
-│   └── README.md
-└── README.md            # This file
+├── cmd/
+│   └── web/
+│       └── main.go          # Application entry point, routing, and initialization
+├── pkg/
+│   ├── config/
+│   │   └── config.go        # Application configuration (AppConfig)
+│   ├── handlers/
+│   │   └── handlers.go      # HTTP request handlers with Repository pattern
+│   └── render/
+│       └── render.go        # Template rendering with caching system
+├── templates/               # HTML templates
+│   ├── base.layout.tmpl     # Base layout with template blocks
+│   ├── home.page.tmpl       # Home page content template
+│   └── about.page.tmpl      # About page content template
+├── go.mod                   # Go module definition
+├── Dockerfile               # Multi-stage Docker build
+├── build.sh                 # Build script with multi-arch support
+├── DOCKER.md                # Docker best practices guide
+├── CLAUDE.md                # AI assistant guidance
+├── CHANGELOG.md             # Version history
+└── README.md                # This file
 ```
 
-## Configuration
+## Architecture
 
-### Resource Limits
-Default limits are optimized for Raspberry Pi:
-- Memory: 32Mi request, 64Mi limit
-- CPU: 50m request, 100m limit
+### Template System
+The application uses a template caching system with layout inheritance:
+- **Base Layout** (`base.layout.tmpl`): Defines the HTML structure with named blocks (content, css, js)
+- **Page Templates** (`*.page.tmpl`): Define content that fills the blocks in the base layout
+- **Template Cache**: Parses all templates at startup and stores them in memory for fast rendering
 
-Adjust in `k8s/deployment.yaml` if needed.
+### Repository Pattern
+Handlers use the Repository pattern to access application configuration:
+- **AppConfig**: Holds template cache, cache mode flag, and loggers
+- **Repository**: Wraps AppConfig and provides it to handlers
+- **Handlers**: Access configuration through the Repository
 
-### Replicas
-Default: 2 replicas for high availability
-
-Scale manually:
-```bash
-kubectl scale deployment nova --replicas=3
-```
+### Configuration
+In `cmd/web/main.go`, set `app.UseCache` to control template caching:
+- `UseCache = false`: Templates are parsed on every request (development mode)
+- `UseCache = true`: Templates are cached at startup (production mode)
 
 ## Development
 
@@ -130,14 +113,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed development instructions and architectur
 
 See [DOCKER.md](DOCKER.md) for Docker best practices and optimization techniques.
 
-## External Access
-
-The service uses a ClusterIP service by default. For external access:
-
-- **CloudFlare Tunnel**: Point to `http://nova.default.svc.cluster.local:80`
-- **Ingress**: Add an ingress resource
-- **LoadBalancer**: Change service type in `k8s/service.yaml`
-- **NodePort**: Change service type for direct node access
+See [CHANGELOG.md](CHANGELOG.md) for version history and recent changes.
 
 ## Contributing
 

@@ -12,19 +12,20 @@ RUN go mod download || true
 # Copy source code
 COPY . .
 
-# Build the application
-RUN go build -o main .
+# Build the application from cmd/web directory
+RUN go build -o main ./cmd/web
 
 # Runtime stage
 FROM alpine:latest
 
-WORKDIR /root/
+WORKDIR /app
 
-# Copy the binary from builder
+# Copy the binary
 COPY --from=builder /app/main .
 
-# Expose port 8080
+# Copy templates directory
+COPY templates/ /app/templates/
+
 EXPOSE 8080
 
-# Run the application
 CMD ["./main"]

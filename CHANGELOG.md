@@ -8,26 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial Go web service with HTTP endpoint
-- Multi-stage Dockerfile for optimized builds
-- Multi-architecture build support (ARM64 + AMD64)
-- Build script with registry push capability
-- Kubernetes manifests (Deployment, Service, Kustomization)
-- Health checks and readiness probes
-- Resource limits optimized for Raspberry Pi
-- Docker best practices documentation
-- Development guide for AI assistants
-- Comprehensive README
+- HTML template rendering with `html/template` package
+- Home page route (/) with Bootstrap-styled template
+- About page route (/about) with Bootstrap-styled template
+- Proper Go project layout with `cmd/` and `pkg/` directories
+- `pkg/handlers` package for HTTP request handlers with Repository pattern
+- `pkg/render` package for template rendering logic with caching
+- `pkg/config` package for application configuration management
+- Template caching system with `CreateTemplateCache()` function
+- Base layout template system (`base.layout.tmpl`) with template blocks
+- Template block architecture for content, CSS, and JS injection
+- Repository pattern for handlers to access application configuration
+- AppConfig struct to hold template cache, UseCache flag, and InfoLog
 
 ### Changed
-- Updated Go version to 1.23 in go.mod and Dockerfile
-- Updated k8s deployment to use chunw208/nova:latest image
-- Made build.sh executable with proper permissions
-- Improved build script Docker login check
+- Refactored from single-file to standard Go project layout
+- Moved main application to `cmd/web/main.go`
+- Organized code into reusable packages (handlers, render, config)
+- Replaced plain text response with HTML template rendering
+- Added Bootstrap 5.3.8 CSS framework for styling
+- Updated Dockerfile to build from `cmd/web/` directory
+- Templates now use layout inheritance with `{{template "base" .}}` and `{{define "content"}}` blocks
+- Handlers now use Repository pattern for accessing app configuration
+- Render package now supports both cached and non-cached template modes
+- Main function now initializes AppConfig, template cache, and repository before routing
 
 ### Deprecated
 
 ### Removed
+- Kubernetes manifests (`k8s/` directory) - deployment.yaml, service.yaml, kustomization.yaml, README.md
+- Direct template parsing in favor of template caching system
 
 ### Fixed
 
