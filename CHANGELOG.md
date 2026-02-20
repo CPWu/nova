@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.2.0] - 2026-02-19
+
+### Added
 - HTML template rendering with `html/template` package
 - Home page route (/) with Bootstrap-styled template
 - About page route (/about) with Bootstrap-styled template
@@ -44,15 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - About template now displays dynamic data from template context
 - Improved build.sh with better error messages and user guidance
 
-### Deprecated
-
 ### Removed
 - Kubernetes manifests (`k8s/` directory) - deployment.yaml, service.yaml, kustomization.yaml, README.md
 - Direct template parsing in favor of template caching system
-
-### Fixed
-
-### Security
 
 ## [0.1.0] - 2026-02-11
 
@@ -63,5 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Kubernetes deployment configuration for k3s
 - Support for CloudFlare Tunnel integration
 
-[Unreleased]: https://github.com/cpwu/nova/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/cpwu/nova/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/cpwu/nova/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cpwu/nova/releases/tag/v0.1.0
