@@ -67,12 +67,15 @@ docker login
 nova/
 ├── cmd/
 │   └── web/
-│       └── main.go          # Application entry point, routing, and initialization
+│       ├── main.go          # Application entry point and initialization
+│       └── routes.go        # HTTP route definitions using Pat router
 ├── pkg/
 │   ├── config/
 │   │   └── config.go        # Application configuration (AppConfig)
 │   ├── handlers/
 │   │   └── handlers.go      # HTTP request handlers with Repository pattern
+│   ├── models/
+│   │   └── templatedata.go  # Data structures for template rendering
 │   └── render/
 │       └── render.go        # Template rendering with caching system
 ├── templates/               # HTML templates
@@ -80,6 +83,7 @@ nova/
 │   ├── home.page.tmpl       # Home page content template
 │   └── about.page.tmpl      # About page content template
 ├── go.mod                   # Go module definition
+├── go.sum                   # Go module checksums
 ├── Dockerfile               # Multi-stage Docker build
 ├── build.sh                 # Build script with multi-arch support
 ├── DOCKER.md                # Docker best practices guide
@@ -90,17 +94,25 @@ nova/
 
 ## Architecture
 
+### Routing
+The application uses the [Pat router](https://github.com/bmizerany/pat) for clean URL routing:
+- Routes are defined in `cmd/web/routes.go`
+- Supports pattern-based routing with simple syntax
+- Integrated with the Repository pattern for handler access
+
 ### Template System
 The application uses a template caching system with layout inheritance:
 - **Base Layout** (`base.layout.tmpl`): Defines the HTML structure with named blocks (content, css, js)
 - **Page Templates** (`*.page.tmpl`): Define content that fills the blocks in the base layout
 - **Template Cache**: Parses all templates at startup and stores them in memory for fast rendering
+- **Template Data**: Uses `TemplateData` struct from `pkg/models` to pass data to templates
 
 ### Repository Pattern
 Handlers use the Repository pattern to access application configuration:
 - **AppConfig**: Holds template cache, cache mode flag, and loggers
 - **Repository**: Wraps AppConfig and provides it to handlers
 - **Handlers**: Access configuration through the Repository
+- **Template Data Flow**: Handlers create `TemplateData` instances and pass them to the render package
 
 ### Configuration
 In `cmd/web/main.go`, set `app.UseCache` to control template caching:

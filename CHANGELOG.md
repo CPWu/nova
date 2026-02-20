@@ -15,16 +15,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pkg/handlers` package for HTTP request handlers with Repository pattern
 - `pkg/render` package for template rendering logic with caching
 - `pkg/config` package for application configuration management
+- `pkg/models` package with TemplateData struct for passing data to templates
+- `cmd/web/routes.go` for centralized route definitions
+- Pat router (`github.com/bmizerany/pat`) for cleaner URL routing
 - Template caching system with `CreateTemplateCache()` function
 - Base layout template system (`base.layout.tmpl`) with template blocks
 - Template block architecture for content, CSS, and JS injection
 - Repository pattern for handlers to access application configuration
 - AppConfig struct to hold template cache, UseCache flag, and InfoLog
+- TemplateData struct with StringMap, IntMap, FloatMap, Data, CSRFToken, Flash, Error, and Warning fields
+- Data passing from handlers to templates via TemplateData
+- Enhanced build.sh with auto-detection of Docker Hub username
+- Build script validation for Docker daemon and username requirements
 
 ### Changed
 - Refactored from single-file to standard Go project layout
 - Moved main application to `cmd/web/main.go`
-- Organized code into reusable packages (handlers, render, config)
+- Organized code into reusable packages (handlers, render, config, models)
 - Replaced plain text response with HTML template rendering
 - Added Bootstrap 5.3.8 CSS framework for styling
 - Updated Dockerfile to build from `cmd/web/` directory
@@ -32,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Handlers now use Repository pattern for accessing app configuration
 - Render package now supports both cached and non-cached template modes
 - Main function now initializes AppConfig, template cache, and repository before routing
+- Separated routing logic from main.go into routes.go for better organization
+- About handler now demonstrates data passing with StringMap
+- About template now displays dynamic data from template context
+- Improved build.sh with better error messages and user guidance
 
 ### Deprecated
 

@@ -1,13 +1,10 @@
-{{template "base" .}}
 {{define "content"}}
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <h1>This is the about page.</h1>
-                <p>This is a paragraph of text on the about page.</p>
-                <p>This is a paragraph of text on the about page.</p>
-            </div>
-        </div>
+<div class="container py-5">
+    <h1 class="mb-3">About</h1>
+    <div class="mt-4 p-3 border rounded bg-light">
+        <p>This came from the template: {{index .StringMap "test"}}</p>
     </div>
+</div>
 {{end}}
 
+{{template "base" .}}

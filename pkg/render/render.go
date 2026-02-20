@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/cpwu/nova/pkg/config"
+	"github.com/cpwu/nova/pkg/models"
 )
 
 // functions holds the custom template functions that can be used in the templates. It is currently empty, but can be populated with any necessary functions for template rendering.
@@ -21,8 +22,13 @@ func NewTemmplates(a *config.AppConfig) {
 	app = a
 }
 
+// AddDefaultData is a helper function that can be used to add default data to the TemplateData struct before rendering a template. This allows for consistent data to be available in all templates without having to manually add it each time.
+func AddDefaultData(templateData *models.TemplateData) *models.TemplateData {
+	return templateData
+}
+
 // RenderTemplate renders a template
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func RenderTemplate(w http.ResponseWriter, tmpl string, templateData *models.TemplateData) {
 	var tc map[string]*template.Template
 
 	// Get the template cache from the app config
@@ -40,7 +46,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 
 	// Create a buffer to hold the rendered template
 	buf := new(bytes.Buffer)
-	err := t.Execute(buf, nil)
+	templateData = AddDefaultData(templateData)
+	err := t.Execute(buf, templateData)
 	if err != nil {
 		log.Println("error executing template:", err)
 	}
