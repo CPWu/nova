@@ -3,6 +3,13 @@
     <h1 class="mb-3">About</h1>
     <div class="mt-4 p-3 border rounded bg-light">
         <p>This came from the template: {{index .StringMap "test"}}</p>
+        <p>
+            {{ if ne (index .StringMap "remote_ip") "" }}
+                Your IP address is: {{ index .StringMap "remote_ip" }}
+            {{ else }}
+                We could not determine your IP address. Visit <a href="/">home</a> to see if we can get it there.
+            {{ end }}
+        </p>
     </div>
 </div>
 {{end}}

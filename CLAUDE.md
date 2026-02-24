@@ -63,20 +63,28 @@ This follows the standard Go project layout with clean separation of concerns:
 
 **Application Structure:**
 - **cmd/web/main.go**: Application entry point with initialization and server setup
-  - Initializes AppConfig with template cache
+  - Initializes AppConfig with template cache, session manager, and production flag
+  - Configures session with 24-hour lifetime and secure cookie settings
   - Creates Repository with app config
   - Sets up handlers and render package
   - Calls routes() function to get configured HTTP handler
   - Starts HTTP server
-- **cmd/web/routes.go**: HTTP route definitions using Pat router
-  - Uses `github.com/bmizerany/pat` for URL routing
+- **cmd/web/routes.go**: HTTP route definitions using Chi router
+  - Uses `github.com/go-chi/chi/v5` for URL routing
+  - Configures middleware pipeline (Recoverer, NoSurf CSRF, SessionLoad)
   - Defines GET routes for / and /about
-  - Returns configured http.Handler
+  - Returns configured http.Handler with middleware
+- **cmd/web/middleware.go**: Custom middleware functions
+  - NoSurf: CSRF protection using `justinas/nosurf`
+  - SessionLoad: Loads and saves session data
+  - WriteToConsole: Custom request logging middleware
 - **pkg/config/**: Application configuration package
-  - **config.go**: AppConfig struct holding template cache, UseCache flag, and InfoLog
+  - **config.go**: AppConfig struct holding template cache, UseCache flag, InfoLog, InProduction flag, and Session manager
 - **pkg/handlers/**: HTTP handlers package with Repository pattern
   - **handlers.go**: Repository struct and handler methods (Home, About)
-  - Repository pattern provides handlers access to application configuration
+  - Repository pattern provides handlers access to application configuration including session manager
+  - Home handler stores remote IP address in session
+  - About handler retrieves remote IP from session and displays it
   - Handlers create TemplateData instances and pass them to render package
 - **pkg/models/**: Data structures for template rendering
   - **templatedata.go**: TemplateData struct with fields for StringMap, IntMap, FloatMap, Data, CSRFToken, Flash, Error, Warning
@@ -98,7 +106,10 @@ This follows the standard Go project layout with clean separation of concerns:
 **Technical Details:**
 - Server runs on port 8080
 - Uses Go standard library (`net/http`, `html/template`)
-- Uses Pat router (`github.com/bmizerany/pat`) for HTTP routing
+- Uses Chi router (`github.com/go-chi/chi/v5`) for HTTP routing
+- Middleware pipeline with panic recovery, CSRF protection, and session management
+- Session management with `alexedwards/scs/v2` for state persistence across requests
+- CSRF protection using `justinas/nosurf` on all routes
 - Follows Go's standard project layout (cmd, pkg structure)
 - Exported packages allow for easy testing and reusability
 - Template caching system for improved performance
@@ -115,13 +126,16 @@ This follows the standard Go project layout with clean separation of concerns:
   - `UseCache = true`: Use pre-parsed cached templates (production)
 
 **Repository Pattern and Data Flow:**
-1. AppConfig created in main with template cache
-2. Repository struct wraps AppConfig
-3. Handlers receive Repository to access app configuration
-4. Render package initialized with AppConfig reference
-5. Handlers create TemplateData instances with data to pass to templates
-6. TemplateData flows from handlers → render.RenderTemplate → templates
-7. Templates access data via dot notation (e.g., `{{index .StringMap "test"}}`)
+1. AppConfig created in main with template cache and session manager
+2. Session configured with 24-hour lifetime and secure cookie settings
+3. Repository struct wraps AppConfig
+4. Handlers receive Repository to access app configuration and session
+5. Render package initialized with AppConfig reference
+6. Middleware pipeline processes requests (recovery, CSRF, session loading)
+7. Handlers use session to store/retrieve data across requests
+8. Handlers create TemplateData instances with data to pass to templates
+9. TemplateData flows from handlers → render.RenderTemplate → templates
+10. Templates access data via dot notation (e.g., `{{index .StringMap "test"}}`)
 
 The Dockerfile implements a multi-stage build pattern:
 1. **Build stage**: Uses `golang:1.23-alpine` to compile the Go binary from cmd/web/
@@ -151,4 +165,6 @@ Module path: github.com/cpwu/nova
 Docker Hub: chunw208/nova
 
 **External Dependencies:**
-- `github.com/bmizerany/pat` v0.0.0-20210406213842-e4b6760bdd6f - HTTP routing with pattern matching
+- `github.com/go-chi/chi/v5` v5.2.5 - HTTP routing with middleware support
+- `github.com/alexedwards/scs/v2` v2.9.0 - Session management
+- `github.com/justinas/nosurf` v1.2.0 - CSRF protection middleware

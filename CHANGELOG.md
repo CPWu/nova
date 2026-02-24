@@ -19,6 +19,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.3.0] - 2026-02-23
+
+### Added
+- Session management using `alexedwards/scs/v2` package
+- Session configuration with 24-hour lifetime and secure cookie settings
+- CSRF protection middleware using `justinas/nosurf` package
+- Custom request logging middleware (`WriteToConsole`)
+- Middleware pipeline with panic recovery, session loading, and CSRF protection
+- Session-based remote IP tracking (stored on home page visit, displayed on about page)
+- Conditional display of remote IP address in about page template
+- `cmd/web/middleware.go` file for custom middleware functions
+
+### Changed
+- Replaced Pat router with Chi router (`github.com/go-chi/chi/v5`)
+- Simplified handler registration (removed need for `http.HandlerFunc` wrapper)
+- Updated dependencies: removed Pat, added Chi v5, nosurf, and scs/v2
+- Enhanced AppConfig with InProduction flag and Session manager
+- Home handler now stores remote IP in session
+- About handler now retrieves and displays remote IP from session
+
+### Removed
+- `github.com/bmizerany/pat` router dependency
+
+### Fixed
+- Template syntax error in about.page.tmpl (missing space between `index` and `.StringMap`)
+- Routing bug where About handler was incorrectly mapped to "/" instead of "/about"
+
+### Security
+- Added CSRF protection to all routes with secure cookie configuration
+- Session cookies configured with SameSite=Lax and Secure flag for production
+
 ## [0.2.0] - 2026-02-19
 
 ### Added
@@ -71,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Kubernetes deployment configuration for k3s
 - Support for CloudFlare Tunnel integration
 
-[Unreleased]: https://github.com/cpwu/nova/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/cpwu/nova/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/cpwu/nova/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cpwu/nova/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cpwu/nova/releases/tag/v0.1.0
