@@ -8,8 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Static file serving route (`/static/*`) for serving images and other static assets
+- Static directory structure with `static/images/` for image assets
+- Image display on home page template
 
 ### Changed
+- Updated `cmd/web/routes.go` to include file server handler for static assets
 
 ### Deprecated
 

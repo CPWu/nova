@@ -6,6 +6,7 @@ A lightweight Go web service with HTML template rendering. Features multiple rou
 
 - HTTP server with multiple routes (/, /about)
 - HTML template rendering with Bootstrap 5 styling
+- Static file serving for images and assets
 - Template caching system for improved performance
 - Base layout template with block inheritance
 - Repository pattern for clean architecture
@@ -68,7 +69,8 @@ nova/
 ├── cmd/
 │   └── web/
 │       ├── main.go          # Application entry point and initialization
-│       └── routes.go        # HTTP route definitions using Pat router
+│       ├── middleware.go    # Custom middleware (CSRF, session, logging)
+│       └── routes.go        # HTTP route definitions using Chi router
 ├── pkg/
 │   ├── config/
 │   │   └── config.go        # Application configuration (AppConfig)
@@ -78,6 +80,8 @@ nova/
 │   │   └── templatedata.go  # Data structures for template rendering
 │   └── render/
 │       └── render.go        # Template rendering with caching system
+├── static/                  # Static assets
+│   └── images/              # Image files
 ├── templates/               # HTML templates
 │   ├── base.layout.tmpl     # Base layout with template blocks
 │   ├── home.page.tmpl       # Home page content template
@@ -95,9 +99,10 @@ nova/
 ## Architecture
 
 ### Routing
-The application uses the [Pat router](https://github.com/bmizerany/pat) for clean URL routing:
+The application uses the [Chi router](https://github.com/go-chi/chi) for clean URL routing:
 - Routes are defined in `cmd/web/routes.go`
-- Supports pattern-based routing with simple syntax
+- Supports middleware chaining and pattern-based routing
+- Includes static file serving for `/static/*` routes
 - Integrated with the Repository pattern for handler access
 
 ### Template System

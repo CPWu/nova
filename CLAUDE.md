@@ -102,6 +102,7 @@ This follows the standard Go project layout with clean separation of concerns:
 **Routes (defined in cmd/web/routes.go):**
 - `/` - Home page with Bootstrap styling
 - `/about` - About page with data passed via TemplateData
+- `/static/*` - Static file server for images and other assets
 
 **Technical Details:**
 - Server runs on port 8080
